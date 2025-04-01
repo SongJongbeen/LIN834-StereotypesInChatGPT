@@ -25,6 +25,9 @@ politicals = categories["political"]
 
 def ask():
     for category in categories:
+        # 디렉토리가 없는 경우 생성
+        os.makedirs(f"outputs/{category}", exist_ok=True)
+
         for value in categories[category]:
             print(f"processing {category}/{value}")
             prompt = load_prompt_template()
@@ -39,11 +42,17 @@ def ask():
                         "role": "user",
                         "content": prompt["user"]["content"].format(value=value)
                     }
-                ]
+                ],
+                temperature=0.0,
+                max_tokens=300,
+                top_p=1.0,
+                response_format={"type": "json_object"}
             )
-            with open(f"outputs/{category}/{value}.txt", "w", encoding="utf-8") as f:
-                f.write(response.choices[0].message.content)
-            print(f"saved {category}/{value}.txt")
-            break
+
+            with open(f"outputs/{category}/{value}.json", "w", encoding="utf-8") as f:
+                json.dump(json.loads(response.choices[0].message.content), f, ensure_ascii=False, indent=2)
+
+            print(f"saved {category}/{value}.json")
+        break
 
 ask()
